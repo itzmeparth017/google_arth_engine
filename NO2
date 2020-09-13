@@ -1,0 +1,258 @@
+/////////////////////2019///////////////////////////////////
+
+
+
+
+
+// Defining the study period to reciprocate with the 
+//begining of lockdown 1
+// finding data of the same dates 1 year ago
+var start = ee.Date('2019-03-23');
+var end = ee.Date('2019-04-14');
+
+// Introduce study area (Bangalore City)
+var StudyArea = Districts.filter(ee.Filter.eq('NAME_2', 'Bangalore Urban'));
+
+// Set as the centere
+Map.centerObject(StudyArea, 11);
+
+// Calculate scale
+var scale = NO2_OFFL.first().select(1).projection().nominalScale();
+
+//Introduce Bangalore and dates on Sentinel-5p, NO2 images, Note we use
+//Offline data (OFFL) and not Near real time (NTRI) as this one is widely 
+//covered and accurate
+var images = NO2_OFFL
+.filterBounds(StudyArea)
+.filterDate(start, end)
+.select(['tropospheric_NO2_column_number_density','cloud_fraction'])
+.map(function(i){
+  return i.set({hour: i.date().format('kk-mm-ss')})
+})
+
+// mask cloudy pixels
+images = images.map(function(i) {
+  var cloud = i.select('cloud_fraction');
+  return i.updateMask(cloud.lt(0.5));
+});
+
+// filter nonull value
+ images = images
+.filterMetadata('hour', 'greater_than', '08-13-24')
+.filterMetadata('hour', 'less_than', '11-42-34')
+
+// filter nonull value
+ images = images
+.filterMetadata('hour', 'greater_than', '08-13-24')
+.filterMetadata('hour', 'less_than', '11-42-34')
+
+//Calculate mean per Image
+var values0 = images
+.map(function(i) { 
+    var values = i.reduceRegion({ reducer: ee.Reducer.mean().unweighted(), geometry: StudyArea, scale: scale })
+
+    var t = i.date().format('YYYY-MM-dd');
+
+    return ee.Feature(null, values).set({ t: t })
+  })
+print('mean per image No2 2019', values0)
+
+
+// Calculate Maximum 
+var values0 = images
+.map(function(i) { 
+    var values = i.reduceRegion({ reducer: ee.Reducer.max().unweighted(), geometry: StudyArea, scale: scale })
+
+    var t = i.date().format('YYYY-MM-dd');
+
+    return ee.Feature(null, values).set({ t: t })
+  })
+print('max per image No2 2019', values0)
+
+// Calculate Miniimum 
+var values0 = images
+.map(function(i) { 
+    var values = i.reduceRegion({ reducer: ee.Reducer.min().unweighted(), geometry: StudyArea, scale: scale })
+
+    var t = i.date().format('YYYY-MM-dd');
+
+    return ee.Feature(null, values).set({ t: t })
+  })
+print('min per image No2 2019', values0)
+
+// Calculate Sum 
+var values0 = images
+.map(function(i) { 
+    var values = i.reduceRegion({ reducer: ee.Reducer.sum().unweighted(), geometry: StudyArea, scale: scale })
+
+    var t = i.date().format('YYYY-MM-dd');
+
+    return ee.Feature(null, values).set({ t: t })
+  })
+print('sum per image No2 2019', values0) 
+
+
+// add date
+images = images.map(function(i) { 
+  return i.set({ date: i.date().format('YYYY-MM-dd')}) 
+})
+
+// get unique days
+var dates = images.aggregate_array('date').distinct()
+
+
+
+// reduce by day
+images = dates.map(function(date) {
+  return images.filter(ee.Filter.eq('date', date)).reduce(ee.Reducer.mean().unweighted())
+    .set({ 'system:time_start': ee.Date(date).millis() })
+})
+
+
+// reduce by region
+images = ee.ImageCollection(images)
+  .map(function(i) { 
+    var values = i.reduceRegion({ reducer: ee.Reducer.mean().unweighted(), geometry: StudyArea, scale: scale })
+
+    var t = i.date().format('YYYY-MM-dd');
+
+    return ee.Feature(null, values).set({ t: t })
+  })
+  print('mean per day No2 2019',images)
+  
+
+// For SI units ('https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S5P_OFFL_L3_NO2#bands')
+
+// Get the data in a visual representation
+var y2019 = ee.ImageCollection("COPERNICUS/S5P/OFFL/L3_NO2").filterDate("2019-03-23","2019-04-14");
+
+Map.addLayer(y2019.max().select("tropospheric_NO2_column_number_density").clip(StudyArea),{min:0.00002,max:0.0005,palette:"lightblue,orange,yellow,red,purple"},"Lockdown 1 2019");
+
+
+
+
+
+//////////////////////////////////////////////2020//////////////////////////////////////////////////
+
+
+// Defining the study period to the 
+//begining of lockdown 1
+var startt = ee.Date('2020-03-23');
+var endd = ee.Date('2020-04-14');
+
+// Introduce study area (Bangalore City)
+var StudyArea = Districts.filter(ee.Filter.eq('NAME_2', 'Bangalore Urban'));
+
+// Set as the centere
+Map.centerObject(StudyArea, 11);
+
+// Calculate scale
+var scale = NO2_OFFL.first().select(1).projection().nominalScale();
+
+//Introduce Bangalore and dates on Sentinel-5p, NO2 images, Note we use
+//Offline data (OFFL) and not Near real time (NTRI) as this one is widely 
+//covered and is more accurate
+var images = NO2_OFFL
+.filterBounds(StudyArea)
+.filterDate(startt, endd)
+.select(['tropospheric_NO2_column_number_density','cloud_fraction'])
+.map(function(i){
+  return i.set({hour: i.date().format('kk-mm-ss')})
+})
+
+// mask cloudy pixels
+images = images.map(function(i) {
+  var cloud = i.select('cloud_fraction');
+  return i.updateMask(cloud.lt(0.5));
+});
+
+// filter nonull value
+ images = images
+.filterMetadata('hour', 'greater_than', '08-13-24')
+.filterMetadata('hour', 'less_than', '11-42-34')
+
+// filter nonull value
+ images = images
+.filterMetadata('hour', 'greater_than', '08-13-24')
+.filterMetadata('hour', 'less_than', '11-42-34')
+
+//Calculate mean per Image
+var values0 = images
+.map(function(i) { 
+    var values = i.reduceRegion({ reducer: ee.Reducer.mean().unweighted(), geometry: StudyArea, scale: scale })
+
+    var t = i.date().format('YYYY-MM-dd');
+
+    return ee.Feature(null, values).set({ t: t })
+  })
+print('mean per image No2 2020', values0)
+
+// Calculate Min per image
+var values0 = images
+.map(function(i) { 
+    var values = i.reduceRegion({ reducer: ee.Reducer.min().unweighted(), geometry: StudyArea, scale: scale })
+
+    var t = i.date().format('YYYY-MM-dd');
+
+    return ee.Feature(null, values).set({ t: t })
+  })
+print('min per image No2 2020', values0)
+
+// Calculate max per image
+var values0 = images
+.map(function(i) { 
+    var values = i.reduceRegion({ reducer: ee.Reducer.max().unweighted(), geometry: StudyArea, scale: scale })
+
+    var t = i.date().format('YYYY-MM-dd');
+
+    return ee.Feature(null, values).set({ t: t })
+  })
+print('max per image No2 2020', values0)
+
+// Calculate sum per image
+var values0 = images
+.map(function(i) { 
+    var values = i.reduceRegion({ reducer: ee.Reducer.sum().unweighted(), geometry: StudyArea, scale: scale })
+
+    var t = i.date().format('YYYY-MM-dd');
+
+    return ee.Feature(null, values).set({ t: t })
+  })
+print('sum per image No2 2020', values0)
+
+
+// add date
+images = images.map(function(i) { 
+  return i.set({ date: i.date().format('YYYY-MM-dd')}) 
+})
+
+// get unique days
+var dates = images.aggregate_array('date').distinct()
+
+
+
+// reduce by day
+images = dates.map(function(date) {
+  return images.filter(ee.Filter.eq('date', date)).reduce(ee.Reducer.mean().unweighted())
+    .set({ 'system:time_start': ee.Date(date).millis() })
+})
+
+
+// reduce by region
+images = ee.ImageCollection(images)
+  .map(function(i) { 
+    var values = i.reduceRegion({ reducer: ee.Reducer.mean().unweighted(), geometry: StudyArea, scale: scale })
+
+    var t = i.date().format('YYYY-MM-dd');
+
+    return ee.Feature(null, values).set({ t: t })
+  })
+  print('mean per day No2 2020',images)
+  
+// For SI units ('https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S5P_OFFL_L3_NO2#bands')
+
+// Get the data in a visual representation
+var y2020 = ee.ImageCollection("COPERNICUS/S5P/OFFL/L3_NO2").filterDate("2020-03-23","2020-04-14");
+
+Map.addLayer(y2020.max().select("tropospheric_NO2_column_number_density").clip(StudyArea),{min:0.00002,max:0.0005,palette:"lightblue,orange,yellow,red,purple"},"Lockdown 1 2020");
+
